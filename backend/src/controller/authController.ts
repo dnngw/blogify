@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
-import prisma from "../config/database.js";
+import prisma from "@/config/database.js";
 import bcrypt from "bcrypt";
-import { registerSchema } from "../validation/authSchema.js";
+import { registerSchema } from "@/validation/authSchema.js";
+import { ResponseError } from "@/util/responseError.js";
 
 export class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
@@ -16,10 +17,7 @@ export class AuthController {
       });
 
       if (userCheck) {
-        return res.status(409).json({
-          success: false,
-          message: "Username or email already exist",
-        });
+        throw new ResponseError(409, "Username or email already exist");
       }
 
       const hashPassword = await bcrypt.hash(password, 10);
@@ -47,6 +45,4 @@ export class AuthController {
       next(error);
     }
   }
-
-  
 }
