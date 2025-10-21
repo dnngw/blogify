@@ -3,7 +3,7 @@ import prisma from "@/config/database.js";
 import bcrypt from "bcrypt";
 import { loginSchema, registerSchema } from "@/validation/authSchema.js";
 import { ResponseError } from "@/util/responseError.js";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -89,7 +89,7 @@ export class AuthController {
           email: checkUser.email,
           role: checkUser.role,
         },
-        process.env.JWT_ACCESS_SECRET!,
+        process.env.JWT_REFRESH_SECRET!,
         { expiresIn: "7d" }
       );
 
@@ -104,6 +104,71 @@ export class AuthController {
         httpOnly: true,
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          accessToken: accessToken,
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async logout(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.cookies.refreshToken;
+
+      res.clearCookie("refreshToken");
+
+      const user = await prisma.user.findFirst({
+        where: { refreshToken: token },
+      });
+
+      if (user) {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { refreshToken: null },
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        message: "Logout",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async refreshToken(req: Request, res: Response, next: NextFunction) {
+    try {
+      const token = req.cookies.refreshToken;
+
+      const payload = jwt.verify(
+        token,
+        process.env.JWT_REFRESH_SECRET!
+      ) as JwtPayload;
+
+      const user = await prisma.user.findFirst({
+        where: { id: payload.id },
+      });
+
+      if (!user) {
+        throw new ResponseError(401, "invalid token");
+      }
+
+      const accessToken = jwt.sign(
+        {
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          role: user.role,
+        },
+        process.env.JWT_ACCESS_SECRET!,
+        { expiresIn: "15m" }
+      );
 
       return res.status(200).json({
         success: true,
