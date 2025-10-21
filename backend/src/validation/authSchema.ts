@@ -7,4 +7,9 @@ export const registerSchema = z.object({
   password: z.string().min(8),
 });
 
+export const loginSchema = z.object({
+  username: z.string(),
+  password: z.string()
+});
+
 

@@ -8,10 +8,10 @@ import { config } from "./config/server.config.js";
 dotenv.config();
 
 export class App {
-  public app: Application;
+  app: Application;  
 
   constructor() {
-    this.app = express();
+    this.app = express(); 
     this.middleware();
     this.initializeRoutes();
     this.errorMiddleware();
@@ -32,7 +32,7 @@ export class App {
     this.app.use(errorHandler);
   }
 
-  public run(){
+  run(){
     this.app.listen(config.port, () => {
       console.log(`server is running at http://localhost:${config.port}`);
     });
