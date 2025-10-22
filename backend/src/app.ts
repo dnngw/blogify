@@ -1,4 +1,5 @@
 import { AuthRoute } from "@/route/index.js";
+import { PostRoute } from "@/route/index.js";
 import express, { Application } from "express";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -25,7 +26,9 @@ export class App {
 
   private initializeRoutes() {
     const authRoute = new AuthRoute();
+    const postRoute = new PostRoute();
     this.app.use("/auth", authRoute.router);
+    this.app.use('/api', postRoute.router);
   }
 
   private errorMiddleware() {

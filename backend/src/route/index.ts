@@ -1,3 +1,4 @@
 import { AuthRoute } from "./authRoute.js";
+import { PostRoute } from "./postRoute.js";
 
-export { AuthRoute };
+export { AuthRoute, PostRoute };
